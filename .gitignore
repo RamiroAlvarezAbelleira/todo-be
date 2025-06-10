@@ -1,0 +1,13 @@
+# Ignorar entorno virtual
+env/
+
+# Ignorar archivos temporales de Python
+__pycache__/
+*.py[cod]
+
+# Ignorar archivos de entorno
+.env
+
+# Otros archivos comunes a ignorar
+*.log
+.DS_Store
