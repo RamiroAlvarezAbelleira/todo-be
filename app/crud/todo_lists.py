@@ -76,3 +76,31 @@ async def create_todo_list_service(todo_list: TodoList):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
         )
+
+
+async def delete_todo_list_service(todo_list_id: str):
+    try:
+        if not ObjectId.is_valid(todo_list_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid todo list ID format."
+            )
+        result = await db.todo_lists.delete_one({"_id": ObjectId(todo_list_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Todo list not found."
+            )
+        return {"message": "Todo list deleted successfully."}
+    except HTTPException as e:
+        raise e
+    except PyMongoError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
