@@ -1,13 +1,50 @@
-from app.schemas.todo_list import TodoListOut, list_serial
+from app.schemas.todo_list import TodoListOut, list_serial, individual_serial
 from app.models.todo_list import TodoList
 from app.database.mongo import db
 from fastapi import HTTPException, status
 from pymongo.errors import PyMongoError
+from bson import ObjectId
 
 async def get_todo_lists_service():
     todo_lists = await db.todo_lists.find().to_list(length=None)
 
     return list_serial(todo_lists)
+
+async def get_todo_list_by_id_service(todo_list_id: str):
+    try:
+        # Validate the ObjectId format
+        if not ObjectId.is_valid(todo_list_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid todo list ID format."
+            )
+        
+        todo_list = await db.todo_lists.find_one({"_id": ObjectId(todo_list_id)})
+
+        # If the todo list is not found, raise a 404 error
+        if not todo_list:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Todo list not found."
+            )
+        
+        return individual_serial(todo_list)
+
+    except HTTPException as e:
+        raise e
+    
+     # Handle specific database errors
+    except PyMongoError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    # Handle other exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
 
 async def create_todo_list_service(todo_list: TodoList):
     try:
