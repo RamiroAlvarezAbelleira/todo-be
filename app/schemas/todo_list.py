@@ -1,8 +1,8 @@
-from typing import Optional
-from pydantic import BaseModel
+from typing import Optional, Annotated
+from pydantic import BaseModel, StringConstraints
 
 class TodoListCreate(BaseModel):
-    title: str
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
     description: Optional[str] = None
 
 class TodoListOut(BaseModel):
