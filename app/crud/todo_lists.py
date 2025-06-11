@@ -1,4 +1,5 @@
 from app.schemas.todo_list import TodoListOut, TodoListUpdate, list_serial, individual_serial
+from app.schemas.task import list_task_serial
 from app.models.todo_list import TodoList
 from app.database.mongo import db
 from fastapi import HTTPException, status
@@ -28,7 +29,12 @@ async def get_todo_list_by_id_service(todo_list_id: str):
                 detail="Todo list not found."
             )
         
-        return individual_serial(todo_list)
+        tasks = await db.tasks.find({"todo_list_id": todo_list_id}).to_list(length=None)
+        serialized_tasks = list_task_serial(tasks)
+        serialized_todo_list = individual_serial(todo_list)
+        serialized_todo_list["tasks"] = serialized_tasks
+        
+        return serialized_todo_list
 
     except HTTPException as e:
         raise e
