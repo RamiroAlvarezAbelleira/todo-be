@@ -1,9 +1,13 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class TodoListOut(BaseModel):
     id: str
     title: str
+    description: Optional[str] = None
+
+class TodoListUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1)
     description: Optional[str] = None
 
 def individual_serial(todo_list) -> dict:

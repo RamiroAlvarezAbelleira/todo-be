@@ -1,4 +1,4 @@
-from app.schemas.todo_list import TodoListOut, list_serial, individual_serial
+from app.schemas.todo_list import TodoListOut, TodoListUpdate, list_serial, individual_serial
 from app.models.todo_list import TodoList
 from app.database.mongo import db
 from fastapi import HTTPException, status
@@ -71,6 +71,53 @@ async def create_todo_list_service(todo_list: TodoList):
             detail=f"Database error: {str(e)}"
         )
     # Handle other exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+
+async def update_todo_list_service(todo_list_id: str, update_data: TodoListUpdate):
+    try:
+        if not ObjectId.is_valid(todo_list_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid todo list ID format."
+            )
+
+        update_data_dict = update_data.model_dump(exclude_unset=True)
+
+        if not update_data_dict:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No valid data provided for update."
+            )
+
+        result = await db.todo_lists.update_one(
+            {"_id": ObjectId(todo_list_id)},
+            {"$set": update_data_dict}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Todo list not found."
+            )
+
+        updated_todo_list = await db.todo_lists.find_one({"_id": ObjectId(todo_list_id)})
+
+        return individual_serial(updated_todo_list)
+
+    except HTTPException as e:
+        raise e
+    
+    except PyMongoError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
+    
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
