@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from app.database.mongo import client
-from app.routers import todo_lists
+from app.routers import todo_lists, tasks
 
 app = FastAPI()
 
 app.include_router(todo_lists.router, prefix="/api", tags=["Todo Lists"])
+app.include_router(tasks.router, prefix="/api", tags=["Tasks"])
 
 @app.get("/")
 def read_root():
