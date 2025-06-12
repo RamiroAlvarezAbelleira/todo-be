@@ -138,6 +138,12 @@ async def delete_todo_list_service(todo_list_id: str):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid todo list ID format."
             )
+        
+        
+        await db.tasks.delete_many({"todo_list_id": todo_list_id})
+
+        # Then delete the todo list
+
         result = await db.todo_lists.delete_one({"_id": ObjectId(todo_list_id)})
         if result.deleted_count == 0:
             raise HTTPException(
