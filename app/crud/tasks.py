@@ -3,7 +3,7 @@ from app.database.mongo import db
 from fastapi import HTTPException, status
 from pymongo.errors import PyMongoError
 from bson import ObjectId
-from app.schemas.task import TaskOut
+from app.schemas.task import TaskOut, individual_task_serial
 
 async def create_task_service(task: Task):
     try:
@@ -39,6 +39,44 @@ async def create_task_service(task: Task):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
+        )
+    
+async def update_task_service(task_id: str, task_data: Task):
+    try:
+        if not ObjectId.is_valid(task_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid task ID format."
+            )
+
+        update_fields = {}
+
+        if task_data.title and task_data.description:
+            update_fields = {
+                "title": task_data.title,
+                "description": task_data.description,
+            }
+        elif task_data.title:
+            update_fields = {"title": task_data.title}
+        elif task_data.description:
+            update_fields = {"description": task_data.description}
+
+
+        await db.tasks.update_one(
+            {"_id": ObjectId(task_id)},
+            {"$set": update_fields}
+            )
+        updated_task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+
+        return individual_task_serial(updated_task)
+    
+    except Exception as e:
+        raise e
+    
+    except PyMongoError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
         )
     
 async def delete_task_service(task_id: str):
