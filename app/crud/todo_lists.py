@@ -29,10 +29,7 @@ async def get_todo_list_by_id_service(todo_list_id: str):
                 detail="Todo list not found."
             )
         
-        tasks = await db.tasks.find({"todo_list_id": todo_list_id}).to_list(length=None)
-        serialized_tasks = list_task_serial(tasks)
         serialized_todo_list = individual_serial(todo_list)
-        serialized_todo_list["tasks"] = serialized_tasks
         
         return serialized_todo_list
 

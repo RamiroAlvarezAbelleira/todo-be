@@ -3,7 +3,7 @@ from app.database.mongo import db
 from fastapi import HTTPException, status
 from pymongo.errors import PyMongoError
 from bson import ObjectId
-from app.schemas.task import TaskOut, individual_task_serial
+from app.schemas.task import TaskOut, individual_task_serial, list_task_serial
 
 async def create_task_service(task: Task):
     try:
@@ -39,6 +39,28 @@ async def create_task_service(task: Task):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+async def get_tasks_by_todo_list_id_service(todo_list_id: str):
+    try:
+        if not ObjectId.is_valid(todo_list_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid todo list ID format."
+            )
+        
+        tasks = await db.tasks.find({"todo_list_id": todo_list_id}).to_list(length=None)
+        serialized_tasks = list_task_serial(tasks)
+
+        return serialized_tasks
+    
+    except Exception as e:
+        raise e
+    
+    except PyMongoError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
         )
     
 async def update_task_service(task_id: str, task_data: Task):
