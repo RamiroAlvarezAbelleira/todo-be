@@ -8,6 +8,10 @@ class TaskOut(BaseModel):
     completed: bool = False
     todo_list_id: str
 
+class UpdateTask(BaseModel):
+    title: str
+    description: Optional[str] = None
+
 def individual_task_serial(task) -> dict:
     return {
         "id": str(task["_id"]),

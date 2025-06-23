@@ -3,7 +3,7 @@ from app.database.mongo import db
 from fastapi import HTTPException, status
 from pymongo.errors import PyMongoError
 from bson import ObjectId
-from app.schemas.task import TaskOut, individual_task_serial, list_task_serial
+from app.schemas.task import TaskOut, individual_task_serial, list_task_serial, UpdateTask
 
 async def create_task_service(task: Task):
     try:
@@ -63,7 +63,7 @@ async def get_tasks_by_todo_list_id_service(todo_list_id: str):
             detail=f"Database error: {str(e)}"
         )
     
-async def update_task_service(task_id: str, task_data: Task):
+async def update_task_service(task_id: str, task_data: UpdateTask):
     try:
         if not ObjectId.is_valid(task_id):
             raise HTTPException(
