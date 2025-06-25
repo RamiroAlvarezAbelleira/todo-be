@@ -22,6 +22,6 @@ async def get_todo_list(todo_list_id: str):
     return await get_todo_list_by_id_service(todo_list_id)
 
 # Recordar que cuando agregue los tasks tambien tengo que borrarlos antes de borrar la lista
-@router.delete("/todo-lists/{todo_lists_id}")
+@router.delete("/todo-lists/{todo_list_id}")
 async def delete_todo_list(todo_list_id: str):
     return await delete_todo_list_service(todo_list_id)
