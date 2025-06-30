@@ -18,3 +18,7 @@ deactivate
 ```bash
 uvicorn app.main:app --reload
 ```
+
+### Aca se puede acceder a la interfaz de fastapi
+
+localhost:8000/docs#/
