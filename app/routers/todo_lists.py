@@ -7,11 +7,11 @@ from app.crud.todo_lists import create_todo_list_service, get_todo_lists_service
 router = APIRouter()
 
 @router.get("/todo-lists")
-async def get_todo_lists():
-    return await get_todo_lists_service()
+async def get_todo_lists(user_uid: str = Depends(get_current_user_uid)):
+    return await get_todo_lists_service(user_uid)
 
 @router.post("/todo-lists")
-async def create_todo_list(todo_list: TodoList, user_uid: str = Depends(get_current_user_uid)):
+async def create_todo_list(todo_list: TodoListUpdate, user_uid: str = Depends(get_current_user_uid)):
     return await create_todo_list_service(todo_list, user_uid)
 
 @router.put("/todo-lists/{todo_list_id}")

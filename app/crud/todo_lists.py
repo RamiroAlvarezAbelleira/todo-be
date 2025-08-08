@@ -1,13 +1,13 @@
 from app.schemas.todo_list import TodoListOut, TodoListUpdate, list_serial, individual_serial
-from app.schemas.task import list_task_serial
-from app.models.todo_list import TodoList
 from app.database.mongo import db
 from fastapi import HTTPException, status
 from pymongo.errors import PyMongoError
 from bson import ObjectId
 
-async def get_todo_lists_service():
-    todo_lists = await db.todo_lists.find().to_list(length=None)
+async def get_todo_lists_service(user_uid: str):
+    todo_lists = await db.todo_lists.find(
+        {"user_uid": user_uid}
+    ).to_list(length=None)
 
     return list_serial(todo_lists)
 
@@ -49,7 +49,7 @@ async def get_todo_list_by_id_service(todo_list_id: str):
             detail=f"An unexpected error occurred: {str(e)}"
         )
 
-async def create_todo_list_service(todo_list: TodoList, user_uid: str):
+async def create_todo_list_service(todo_list: TodoListUpdate, user_uid: str):
     try:
         # Convertir a dict para poder modificarlo
         todo_list_data = todo_list.model_dump()
