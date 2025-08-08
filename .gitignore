@@ -11,3 +11,4 @@ __pycache__/
 # Otros archivos comunes a ignorar
 *.log
 .DS_Store
+firebase-service-account-todo-app.json

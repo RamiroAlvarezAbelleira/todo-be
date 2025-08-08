@@ -49,8 +49,13 @@ async def get_todo_list_by_id_service(todo_list_id: str):
             detail=f"An unexpected error occurred: {str(e)}"
         )
 
-async def create_todo_list_service(todo_list: TodoList):
+async def create_todo_list_service(todo_list: TodoList, user_uid: str):
     try:
+        # Convertir a dict para poder modificarlo
+        todo_list_data = todo_list.model_dump()
+        
+        # Sobrescribimos/aseguramos el user_uid
+        todo_list_data["user_uid"] = user_uid
 
         existing_list = await db.todo_lists.find_one({"title": todo_list.title})
 
@@ -60,9 +65,9 @@ async def create_todo_list_service(todo_list: TodoList):
                 detail="A todo list with this title already exists."
             )
 
-        result = await db.todo_lists.insert_one(todo_list.model_dump())
+        result = await db.todo_lists.insert_one(todo_list_data)
 
-        return TodoListOut(id=str(result.inserted_id), **todo_list.model_dump())
+        return TodoListOut(id=str(result.inserted_id), **todo_list_data)
     
     except HTTPException as e:
         raise e 
