@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database.mongo import client
-from app.routers import todo_lists, tasks
+from app.routers import todo_lists, tasks, users
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -22,6 +22,7 @@ app.add_middleware(
 \
 app.include_router(todo_lists.router, prefix="/api", tags=["Todo Lists"])
 app.include_router(tasks.router, prefix="/api", tags=["Tasks"])
+app.include_router(users.router, prefix="/api", tags=["Users"] )
 
 @app.get("/")
 def read_root():
