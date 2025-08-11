@@ -15,14 +15,14 @@ async def create_todo_list(todo_list: TodoListUpdate, user_uid: str = Depends(ge
     return await create_todo_list_service(todo_list, user_uid)
 
 @router.put("/todo-lists/{todo_list_id}")
-async def update_todo_list(todo_list_id: str, update_data: TodoListUpdate):
-    return await update_todo_list_service(todo_list_id, update_data)
+async def update_todo_list(todo_list_id: str, update_data: TodoListUpdate, user_uid: str = Depends(get_current_user_uid)):
+    return await update_todo_list_service(todo_list_id, update_data, user_uid)
 
 @router.get("/todo-lists/{todo_list_id}")
-async def get_todo_list(todo_list_id: str):
-    return await get_todo_list_by_id_service(todo_list_id)
+async def get_todo_list(todo_list_id: str, user_uid: str = Depends(get_current_user_uid)):
+    return await get_todo_list_by_id_service(todo_list_id, user_uid)
 
 # Recordar que cuando agregue los tasks tambien tengo que borrarlos antes de borrar la lista
 @router.delete("/todo-lists/{todo_list_id}")
-async def delete_todo_list(todo_list_id: str):
-    return await delete_todo_list_service(todo_list_id)
+async def delete_todo_list(todo_list_id: str, user_uid: str = Depends(get_current_user_uid)):
+    return await delete_todo_list_service(todo_list_id, user_uid)

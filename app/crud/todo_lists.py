@@ -11,7 +11,7 @@ async def get_todo_lists_service(user_uid: str):
 
     return list_serial(todo_lists)
 
-async def get_todo_list_by_id_service(todo_list_id: str):
+async def get_todo_list_by_id_service(todo_list_id: str, user_uid: str):
     try:
         # Validate the ObjectId format
         if not ObjectId.is_valid(todo_list_id):
@@ -86,7 +86,7 @@ async def create_todo_list_service(todo_list: TodoListUpdate, user_uid: str):
         )
 
 
-async def update_todo_list_service(todo_list_id: str, update_data: TodoListUpdate):
+async def update_todo_list_service(todo_list_id: str, update_data: TodoListUpdate, user_uid: str):
     try:
         if not ObjectId.is_valid(todo_list_id):
             raise HTTPException(
@@ -103,7 +103,7 @@ async def update_todo_list_service(todo_list_id: str, update_data: TodoListUpdat
             )
 
         result = await db.todo_lists.update_one(
-            {"_id": ObjectId(todo_list_id)},
+            {"_id": ObjectId(todo_list_id), "user_uid": user_uid},
             {"$set": update_data_dict}
         )
 
@@ -133,12 +133,22 @@ async def update_todo_list_service(todo_list_id: str, update_data: TodoListUpdat
         )
 
 
-async def delete_todo_list_service(todo_list_id: str):
+async def delete_todo_list_service(todo_list_id: str, user_uid: str):
     try:
         if not ObjectId.is_valid(todo_list_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid todo list ID format."
+            )
+        todo_list = await db.todo_lists.find_one({
+            "_id": ObjectId(todo_list_id),
+            "user_uid": user_uid
+        })
+
+        if not todo_list:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Todo list not found or you don't have permission to delete it."
             )
         # First, delete all tasks associated with the todo list
         
