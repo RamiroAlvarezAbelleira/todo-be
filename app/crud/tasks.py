@@ -3,9 +3,9 @@ from app.database.mongo import db
 from fastapi import HTTPException, status
 from pymongo.errors import PyMongoError
 from bson import ObjectId
-from app.schemas.task import TaskOut, individual_task_serial, list_task_serial, UpdateTask
+from app.schemas.task import TaskOut, individual_task_serial, list_task_serial, UpdateTask, CreateTask
 
-async def create_task_service(task: Task):
+async def create_task_service(task: CreateTask, user_uid: str):
     try:
         if not ObjectId.is_valid(task.todo_list_id):
             raise HTTPException(
@@ -13,7 +13,10 @@ async def create_task_service(task: Task):
                 detail="Invalid todo list ID format."
             )
         
-        todo_list = await db.todo_lists.find_one({"_id": ObjectId(task.todo_list_id)})
+        task_data = task.model_dump()
+        task_data["user_uid"] = user_uid
+        
+        todo_list = await db.todo_lists.find_one({"_id": ObjectId(task.todo_list_id), "user_uid": user_uid})
 
         if not todo_list:
             raise HTTPException(
@@ -22,9 +25,9 @@ async def create_task_service(task: Task):
             )
         
 
-        result = await db.tasks.insert_one(task.model_dump())
+        result = await db.tasks.insert_one(task_data)
 
-        return TaskOut(id=str(result.inserted_id), **task.model_dump())
+        return TaskOut(id=str(result.inserted_id), **task_data)
     
     except Exception as e:
         raise e
@@ -41,7 +44,7 @@ async def create_task_service(task: Task):
             detail=f"An unexpected error occurred: {str(e)}"
         )
 
-async def get_tasks_by_todo_list_id_service(todo_list_id: str):
+async def get_tasks_by_todo_list_id_service(todo_list_id: str, user_uid: str):
     try:
         if not ObjectId.is_valid(todo_list_id):
             raise HTTPException(
@@ -49,7 +52,7 @@ async def get_tasks_by_todo_list_id_service(todo_list_id: str):
                 detail="Invalid todo list ID format."
             )
         
-        tasks = await db.tasks.find({"todo_list_id": todo_list_id}).to_list(length=None)
+        tasks = await db.tasks.find({"todo_list_id": todo_list_id, "user_uid": user_uid}).to_list(length=None)
         serialized_tasks = list_task_serial(tasks)
 
         return serialized_tasks
@@ -63,7 +66,7 @@ async def get_tasks_by_todo_list_id_service(todo_list_id: str):
             detail=f"Database error: {str(e)}"
         )
     
-async def update_task_service(task_id: str, task_data: UpdateTask):
+async def update_task_service(task_id: str, task_data: UpdateTask, user_uid: str):
     try:
         if not ObjectId.is_valid(task_id):
             raise HTTPException(
@@ -85,7 +88,7 @@ async def update_task_service(task_id: str, task_data: UpdateTask):
 
 
         await db.tasks.update_one(
-            {"_id": ObjectId(task_id)},
+            {"_id": ObjectId(task_id), "user_uid": user_uid},
             {"$set": update_fields}
             )
         updated_task = await db.tasks.find_one({"_id": ObjectId(task_id)})
@@ -101,7 +104,7 @@ async def update_task_service(task_id: str, task_data: UpdateTask):
             detail=f"Database error: {str(e)}"
         )
     
-async def delete_task_service(task_id: str):
+async def delete_task_service(task_id: str, user_uid: str):
     try:
         if not ObjectId.is_valid(task_id):
             raise HTTPException(
@@ -109,7 +112,7 @@ async def delete_task_service(task_id: str):
                 detail="Invalid task ID format."
             )
         
-        result = await db.tasks.delete_one({"_id": ObjectId(task_id)})
+        result = await db.tasks.delete_one({"_id": ObjectId(task_id), "user_uid": user_uid})
 
         if result.deleted_count == 0:
             raise HTTPException(
@@ -134,7 +137,7 @@ async def delete_task_service(task_id: str):
             detail=f"An unexpected error occurred: {str(e)}"
         )
     
-async def toggle_complete_task_service(task_id: str):
+async def toggle_complete_task_service(task_id: str, user_uid: str):
     try:
         if not ObjectId.is_valid(task_id):
             raise HTTPException(
@@ -142,7 +145,7 @@ async def toggle_complete_task_service(task_id: str):
                 detail="Invalid task ID format."
             )
         
-        task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+        task = await db.tasks.find_one({"_id": ObjectId(task_id), "user_uid": user_uid})
 
         if not task:
             raise HTTPException(

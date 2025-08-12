@@ -6,3 +6,4 @@ class Task(BaseModel):
     description: Optional[str] = None
     completed: bool = False
     todo_list_id: str
+    user_uid: str

@@ -12,6 +12,12 @@ class UpdateTask(BaseModel):
     title: str
     description: Optional[str] = None
 
+class CreateTask(BaseModel):
+    title: str
+    description: Optional[str] = None
+    completed: bool = False
+    todo_list_id: str
+
 def individual_task_serial(task) -> dict:
     return {
         "id": str(task["_id"]),
